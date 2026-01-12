@@ -5,7 +5,9 @@
 QuadratureEncoderAnalyzer::QuadratureEncoderAnalyzer()
 :	Analyzer2(),  
 	mSettings(),
-	mSimulationInitilized( false )
+	mSimulationInitilized( false ),
+	mPosition( 0 ),
+	mLastState( 0 )
 {
 	SetAnalyzerSettings( &mSettings );
 }
@@ -20,56 +22,87 @@ void QuadratureEncoderAnalyzer::SetupResults()
 	// SetupResults is called each time the analyzer is run. Because the same instance can be used for multiple runs, we need to clear the results each time.
 	mResults.reset(new QuadratureEncoderAnalyzerResults( this, &mSettings ));
 	SetAnalyzerResults( mResults.get() );
-	mResults->AddChannelBubblesWillAppearOn( mSettings.mInputChannel );
+	mResults->AddChannelBubblesWillAppearOn( mSettings.mChannelA );
+	mResults->AddChannelBubblesWillAppearOn( mSettings.mChannelB );
+	if( mSettings.mChannelZ != UNDEFINED_CHANNEL )
+		mResults->AddChannelBubblesWillAppearOn( mSettings.mChannelZ );
 }
 
 void QuadratureEncoderAnalyzer::WorkerThread()
 {
 	mSampleRateHz = GetSampleRate();
 
-	mSerial = GetAnalyzerChannelData( mSettings.mInputChannel );
+	mChannelA = GetAnalyzerChannelData( mSettings.mChannelA );
+	mChannelB = GetAnalyzerChannelData( mSettings.mChannelB );
+	if( mSettings.mChannelZ != UNDEFINED_CHANNEL )
+		mChannelZ = GetAnalyzerChannelData( mSettings.mChannelZ );
 
-	if( mSerial->GetBitState() == BIT_LOW )
-		mSerial->AdvanceToNextEdge();
-
-	U32 samples_per_bit = mSampleRateHz / mSettings.mBitRate;
-	U32 samples_to_first_center_of_first_data_bit = U32( 1.5 * double( mSampleRateHz ) / double( mSettings.mBitRate ) );
+	// Initialize state based on current channel values
+	mLastState = ( mChannelA->GetBitState() == BIT_HIGH ? 0x02 : 0 ) | ( mChannelB->GetBitState() == BIT_HIGH ? 0x01 : 0 );
+	mPosition = 0;
 
 	for( ; ; )
 	{
-		U8 data = 0;
-		U8 mask = 1 << 7;
-		
-		mSerial->AdvanceToNextEdge(); //falling edge -- beginning of the start bit
+		// Wait for any edge on channel A or B
+		U64 channelA_next = mChannelA->GetSampleOfNextEdge();
+		U64 channelB_next = mChannelB->GetSampleOfNextEdge();
+		U64 next_edge;
 
-		U64 starting_sample = mSerial->GetSampleNumber();
-
-		mSerial->Advance( samples_to_first_center_of_first_data_bit );
-
-		for( U32 i=0; i<8; i++ )
+		if( channelA_next < channelB_next )
 		{
-			//let's put a dot exactly where we sample this bit:
-			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings.mInputChannel );
-
-			if( mSerial->GetBitState() == BIT_HIGH )
-				data |= mask;
-
-			mSerial->Advance( samples_per_bit );
-
-			mask = mask >> 1;
+			next_edge = channelA_next;
+			mChannelA->AdvanceToAbsPosition( next_edge );
+			mChannelB->AdvanceToAbsPosition( next_edge );
+		}
+		else
+		{
+			next_edge = channelB_next;
+			mChannelA->AdvanceToAbsPosition( next_edge );
+			mChannelB->AdvanceToAbsPosition( next_edge );
 		}
 
+		// Read current state
+		U8 current_state = ( mChannelA->GetBitState() == BIT_HIGH ? 0x02 : 0 ) | ( mChannelB->GetBitState() == BIT_HIGH ? 0x01 : 0 );
 
-		//we have a byte to save. 
-		Frame frame;
-		frame.mData1 = data;
-		frame.mFlags = 0;
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mSerial->GetSampleNumber();
+		// Quadrature state machine: Gray code sequence
+		// Forward:  00 -> 01 -> 11 -> 10 -> 00
+		// Backward: 00 -> 10 -> 11 -> 01 -> 00
+		S8 direction = 0;
+		U8 transition = (mLastState << 2) | current_state;
 
-		mResults->AddFrame( frame );
-		mResults->CommitResults();
-		ReportProgress( frame.mEndingSampleInclusive );
+		switch( transition )
+		{
+			case 0x01: case 0x07: case 0x0E: case 0x08: // Forward transitions
+				direction = 1;
+				mPosition++;
+				break;
+			case 0x02: case 0x0B: case 0x0D: case 0x04: // Backward transitions
+				direction = -1;
+				mPosition--;
+				break;
+			default:
+				// Invalid transition or no change
+				direction = 0;
+				break;
+		}
+
+		if( direction != 0 )
+		{
+			// Create a frame for this position change
+			Frame frame;
+			frame.mData1 = mPosition;
+			frame.mData2 = direction;
+			frame.mFlags = 0;
+			frame.mStartingSampleInclusive = next_edge;
+			frame.mEndingSampleInclusive = next_edge;
+
+			mResults->AddMarker( next_edge, direction > 0 ? AnalyzerResults::UpArrow : AnalyzerResults::DownArrow, mSettings.mChannelA );
+			mResults->AddFrame( frame );
+			mResults->CommitResults();
+			ReportProgress( frame.mEndingSampleInclusive );
+		}
+
+		mLastState = current_state;
 	}
 }
 
@@ -91,7 +124,8 @@ U32 QuadratureEncoderAnalyzer::GenerateSimulationData( U64 minimum_sample_index,
 
 U32 QuadratureEncoderAnalyzer::GetMinimumSampleRateHz()
 {
-	return mSettings.mBitRate * 4;
+	// For reliable quadrature decoding, we need at least 4x the maximum expected edge rate
+	return 10000; // 10 kHz minimum sample rate
 }
 
 const char* QuadratureEncoderAnalyzer::GetAnalyzerName() const

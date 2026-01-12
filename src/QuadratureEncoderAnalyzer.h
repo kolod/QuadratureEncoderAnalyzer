@@ -25,15 +25,17 @@ public:
 protected: //vars
 	QuadratureEncoderAnalyzerSettings mSettings;
 	std::unique_ptr<QuadratureEncoderAnalyzerResults> mResults;
-	AnalyzerChannelData* mSerial;
+	AnalyzerChannelData* mChannelA;
+	AnalyzerChannelData* mChannelB;
+	AnalyzerChannelData* mChannelZ;
 
 	QuadratureEncoderSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
 
-	//Serial analysis vars:
+	//Quadrature encoder analysis vars:
 	U32 mSampleRateHz;
-	U32 mStartOfStopBitOffset;
-	U32 mEndOfStopBitOffset;
+	S64 mPosition;
+	U8 mLastState;
 };
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();

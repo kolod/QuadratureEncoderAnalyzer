@@ -19,11 +19,13 @@ protected:
 	U32 mSimulationSampleRateHz;
 
 protected:
-	void CreateSerialByte();
-	std::string mSerialText;
-	U32 mStringIndex;
+	void CreateQuadratureTransition( bool forward );
+	U32 mTransitionCount;
+	U8 mCurrentState;
 
-	SimulationChannelDescriptor mSerialSimulationData;
+	SimulationChannelDescriptor mChannelASimulationData;
+	SimulationChannelDescriptor mChannelBSimulationData;
+	SimulationChannelDescriptor mChannelZSimulationData;
 
 };
 #endif //QUADRATUREENCODER_SIMULATION_DATA_GENERATOR

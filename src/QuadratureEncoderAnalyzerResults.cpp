@@ -21,9 +21,21 @@ void QuadratureEncoderAnalyzerResults::GenerateBubbleText( U64 frame_index, Chan
 	ClearResultStrings();
 	Frame frame = GetFrame( frame_index );
 
-	char number_str[128];
-	AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-	AddResultString( number_str );
+	char position_str[128];
+	char direction_str[16];
+	char combined_str[256];
+
+	// frame.mData1 = position, frame.mData2 = direction
+	S64 position = (S64)frame.mData1;
+	S8 direction = (S8)frame.mData2;
+
+	snprintf( position_str, sizeof(position_str), "%lld", position );
+	snprintf( direction_str, sizeof(direction_str), "%s", direction > 0 ? "+" : "-" );
+	snprintf( combined_str, sizeof(combined_str), "%s%lld", direction > 0 ? "+" : "-", position );
+
+	AddResultString( direction_str );
+	AddResultString( position_str );
+	AddResultString( combined_str );
 }
 
 void QuadratureEncoderAnalyzerResults::GenerateExportFile( const char* file, DisplayBase display_base, U32 export_type_user_id )
@@ -33,7 +45,7 @@ void QuadratureEncoderAnalyzerResults::GenerateExportFile( const char* file, Dis
 	U64 trigger_sample = mAnalyzer->GetTriggerSample();
 	U32 sample_rate = mAnalyzer->GetSampleRate();
 
-	file_stream << "Time [s],Value" << std::endl;
+	file_stream << "Time [s],Position,Direction" << std::endl;
 
 	U64 num_frames = GetNumFrames();
 	for( U32 i=0; i < num_frames; i++ )
@@ -43,10 +55,10 @@ void QuadratureEncoderAnalyzerResults::GenerateExportFile( const char* file, Dis
 		char time_str[128];
 		AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
 
-		char number_str[128];
-		AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
+		S64 position = (S64)frame.mData1;
+		S8 direction = (S8)frame.mData2;
 
-		file_stream << time_str << "," << number_str << std::endl;
+		file_stream << time_str << "," << position << "," << (direction > 0 ? "Forward" : "Backward") << std::endl;
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{
@@ -64,9 +76,12 @@ void QuadratureEncoderAnalyzerResults::GenerateFrameTabularText( U64 frame_index
 	Frame frame = GetFrame( frame_index );
 	ClearTabularText();
 
-	char number_str[128];
-	AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-	AddTabularText( number_str );
+	S64 position = (S64)frame.mData1;
+	S8 direction = (S8)frame.mData2;
+
+	char position_str[128];
+	snprintf( position_str, sizeof(position_str), "Pos: %lld, Dir: %s", position, direction > 0 ? "Fwd" : "Bwd" );
+	AddTabularText( position_str );
 #endif
 }
 
