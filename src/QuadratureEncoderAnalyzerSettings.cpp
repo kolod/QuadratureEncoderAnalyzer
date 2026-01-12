@@ -1,14 +1,14 @@
-#include "SimpleSerialAnalyzerSettings.h"
+#include "QuadratureEncoderAnalyzerSettings.h"
 #include <AnalyzerHelpers.h>
 
 
-SimpleSerialAnalyzerSettings::SimpleSerialAnalyzerSettings()
+QuadratureEncoderAnalyzerSettings::QuadratureEncoderAnalyzerSettings()
 :	mInputChannel( UNDEFINED_CHANNEL ),
 	mBitRate( 9600 ),
 	mInputChannelInterface(),
 	mBitRateInterface()
 {
-	mInputChannelInterface.SetTitleAndTooltip( "Serial", "Standard Simple Serial" );
+	mInputChannelInterface.SetTitleAndTooltip( "Serial", "Standard Quadrature Encoder" );
 	mInputChannelInterface.SetChannel( mInputChannel );
 
 	mBitRateInterface.SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
@@ -27,28 +27,28 @@ SimpleSerialAnalyzerSettings::SimpleSerialAnalyzerSettings()
 	AddChannel( mInputChannel, "Serial", false );
 }
 
-SimpleSerialAnalyzerSettings::~SimpleSerialAnalyzerSettings()
+QuadratureEncoderAnalyzerSettings::~QuadratureEncoderAnalyzerSettings()
 {
 }
 
-bool SimpleSerialAnalyzerSettings::SetSettingsFromInterfaces()
+bool QuadratureEncoderAnalyzerSettings::SetSettingsFromInterfaces()
 {
 	mInputChannel = mInputChannelInterface.GetChannel();
 	mBitRate = mBitRateInterface.GetInteger();
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Simple Serial", true );
+	AddChannel( mInputChannel, "Quadrature Encoder", true );
 
 	return true;
 }
 
-void SimpleSerialAnalyzerSettings::UpdateInterfacesFromSettings()
+void QuadratureEncoderAnalyzerSettings::UpdateInterfacesFromSettings()
 {
 	mInputChannelInterface.SetChannel( mInputChannel );
 	mBitRateInterface.SetInteger( mBitRate );
 }
 
-void SimpleSerialAnalyzerSettings::LoadSettings( const char* settings )
+void QuadratureEncoderAnalyzerSettings::LoadSettings( const char* settings )
 {
 	SimpleArchive text_archive;
 	text_archive.SetString( settings );
@@ -57,12 +57,12 @@ void SimpleSerialAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive >> mBitRate;
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Simple Serial", true );
+	AddChannel( mInputChannel, "Quadrature Encoder", true );
 
 	UpdateInterfacesFromSettings();
 }
 
-const char* SimpleSerialAnalyzerSettings::SaveSettings()
+const char* QuadratureEncoderAnalyzerSettings::SaveSettings()
 {
 	SimpleArchive text_archive;
 

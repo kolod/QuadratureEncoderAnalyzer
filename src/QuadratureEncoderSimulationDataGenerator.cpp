@@ -1,19 +1,19 @@
-#include "SimpleSerialSimulationDataGenerator.h"
-#include "SimpleSerialAnalyzerSettings.h"
+#include "QuadratureEncoderSimulationDataGenerator.h"
+#include "QuadratureEncoderAnalyzerSettings.h"
 
 #include <AnalyzerHelpers.h>
 
-SimpleSerialSimulationDataGenerator::SimpleSerialSimulationDataGenerator()
+QuadratureEncoderSimulationDataGenerator::QuadratureEncoderSimulationDataGenerator()
 :	mSerialText( "My first analyzer, woo hoo!" ),
 	mStringIndex( 0 )
 {
 }
 
-SimpleSerialSimulationDataGenerator::~SimpleSerialSimulationDataGenerator()
+QuadratureEncoderSimulationDataGenerator::~QuadratureEncoderSimulationDataGenerator()
 {
 }
 
-void SimpleSerialSimulationDataGenerator::Initialize( U32 simulation_sample_rate, SimpleSerialAnalyzerSettings* settings )
+void QuadratureEncoderSimulationDataGenerator::Initialize( U32 simulation_sample_rate, QuadratureEncoderAnalyzerSettings* settings )
 {
 	mSimulationSampleRateHz = simulation_sample_rate;
 	mSettings = settings;
@@ -23,7 +23,7 @@ void SimpleSerialSimulationDataGenerator::Initialize( U32 simulation_sample_rate
 	mSerialSimulationData.SetInitialBitState( BIT_HIGH );
 }
 
-U32 SimpleSerialSimulationDataGenerator::GenerateSimulationData( U64 largest_sample_requested, U32 sample_rate, SimulationChannelDescriptor** simulation_channel )
+U32 QuadratureEncoderSimulationDataGenerator::GenerateSimulationData( U64 largest_sample_requested, U32 sample_rate, SimulationChannelDescriptor** simulation_channel )
 {
 	U64 adjusted_largest_sample_requested = AnalyzerHelpers::AdjustSimulationTargetSample( largest_sample_requested, sample_rate, mSimulationSampleRateHz );
 
@@ -36,7 +36,7 @@ U32 SimpleSerialSimulationDataGenerator::GenerateSimulationData( U64 largest_sam
 	return 1;
 }
 
-void SimpleSerialSimulationDataGenerator::CreateSerialByte()
+void QuadratureEncoderSimulationDataGenerator::CreateSerialByte()
 {
 	U32 samples_per_bit = mSimulationSampleRateHz / mSettings->mBitRate;
 
