@@ -3,28 +3,55 @@
 
 
 QuadratureEncoderAnalyzerSettings::QuadratureEncoderAnalyzerSettings()
-:	mInputChannel( UNDEFINED_CHANNEL ),
-	mBitRate( 9600 ),
-	mInputChannelInterface(),
-	mBitRateInterface()
+:	mChannelA( UNDEFINED_CHANNEL ),
+	mChannelB( UNDEFINED_CHANNEL ),
+	mChannelZ( UNDEFINED_CHANNEL ),
+	mInvertedChannelA( UNDEFINED_CHANNEL ),
+	mInvertedChannelB( UNDEFINED_CHANNEL ),
+	mInvertedChannelZ( UNDEFINED_CHANNEL ),
+	mChannelAInterface(),
+	mChannelBInterface(),
+	mChannelZInterface(),
+	mInvertedChannelAInterface(),
+	mInvertedChannelBInterface(),
+	mInvertedChannelZInterface()
 {
-	mInputChannelInterface.SetTitleAndTooltip( "Serial", "Standard Quadrature Encoder" );
-	mInputChannelInterface.SetChannel( mInputChannel );
+	mChannelAInterface.SetTitleAndTooltip( "Channel A", "Quadrature Encoder Channel A" );
+	mChannelAInterface.SetChannel( mChannelA );
 
-	mBitRateInterface.SetTitleAndTooltip( "Bit Rate (Bits/S)",  "Specify the bit rate in bits per second." );
-	mBitRateInterface.SetMax( 6000000 );
-	mBitRateInterface.SetMin( 1 );
-	mBitRateInterface.SetInteger( mBitRate );
+	mChannelBInterface.SetTitleAndTooltip( "Channel B", "Quadrature Encoder Channel B" );
+	mChannelBInterface.SetChannel( mChannelB );
 
-	AddInterface( &mInputChannelInterface );
-	AddInterface( &mBitRateInterface );
+	mChannelZInterface.SetTitleAndTooltip( "Channel Z", "Quadrature Encoder Index Channel (optional)" );
+	mChannelZInterface.SetChannel( mChannelZ );
+
+	mInvertedChannelAInterface.SetTitleAndTooltip( "Inverted Channel A", "Inverted Quadrature Encoder Channel A (optional)" );
+	mInvertedChannelAInterface.SetChannel( mInvertedChannelA );
+
+	mInvertedChannelBInterface.SetTitleAndTooltip( "Inverted Channel B", "Inverted Quadrature Encoder Channel B (optional)" );
+	mInvertedChannelBInterface.SetChannel( mInvertedChannelB );
+
+	mInvertedChannelZInterface.SetTitleAndTooltip( "Inverted Channel Z", "Inverted Quadrature Encoder Index Channel (optional)" );
+	mInvertedChannelZInterface.SetChannel( mInvertedChannelZ );
+
+	AddInterface( &mChannelAInterface );
+	AddInterface( &mChannelBInterface );
+	AddInterface( &mChannelZInterface );
+	AddInterface( &mInvertedChannelAInterface );
+	AddInterface( &mInvertedChannelBInterface );
+	AddInterface( &mInvertedChannelZInterface );
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
 	AddExportExtension( 0, "csv", "csv" );
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Serial", false );
+	AddChannel( mChannelA, "Channel A", false );
+	AddChannel( mChannelB, "Channel B", false );
+	AddChannel( mChannelZ, "Channel Z", false );
+	AddChannel( mInvertedChannelA, "Inverted Channel A", false );
+	AddChannel( mInvertedChannelB, "Inverted Channel B", false );
+	AddChannel( mInvertedChannelZ, "Inverted Channel Z", false );
 }
 
 QuadratureEncoderAnalyzerSettings::~QuadratureEncoderAnalyzerSettings()
@@ -33,19 +60,32 @@ QuadratureEncoderAnalyzerSettings::~QuadratureEncoderAnalyzerSettings()
 
 bool QuadratureEncoderAnalyzerSettings::SetSettingsFromInterfaces()
 {
-	mInputChannel = mInputChannelInterface.GetChannel();
-	mBitRate = mBitRateInterface.GetInteger();
+	mChannelA = mChannelAInterface.GetChannel();
+	mChannelB = mChannelBInterface.GetChannel();
+	mChannelZ = mChannelZInterface.GetChannel();
+	mInvertedChannelA = mInvertedChannelAInterface.GetChannel();
+	mInvertedChannelB = mInvertedChannelBInterface.GetChannel();
+	mInvertedChannelZ = mInvertedChannelZInterface.GetChannel();
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Quadrature Encoder", true );
+	AddChannel( mChannelA, "Channel A", true );
+	AddChannel( mChannelB, "Channel B", true );
+	AddChannel( mChannelZ, "Channel Z", true );
+	AddChannel( mInvertedChannelA, "Inverted Channel A", true );
+	AddChannel( mInvertedChannelB, "Inverted Channel B", true );
+	AddChannel( mInvertedChannelZ, "Inverted Channel Z", true );
 
 	return true;
 }
 
 void QuadratureEncoderAnalyzerSettings::UpdateInterfacesFromSettings()
 {
-	mInputChannelInterface.SetChannel( mInputChannel );
-	mBitRateInterface.SetInteger( mBitRate );
+	mChannelAInterface.SetChannel( mChannelA );
+	mChannelBInterface.SetChannel( mChannelB );
+	mChannelZInterface.SetChannel( mChannelZ );
+	mInvertedChannelAInterface.SetChannel( mInvertedChannelA );
+	mInvertedChannelBInterface.SetChannel( mInvertedChannelB );
+	mInvertedChannelZInterface.SetChannel( mInvertedChannelZ );
 }
 
 void QuadratureEncoderAnalyzerSettings::LoadSettings( const char* settings )
@@ -53,11 +93,20 @@ void QuadratureEncoderAnalyzerSettings::LoadSettings( const char* settings )
 	SimpleArchive text_archive;
 	text_archive.SetString( settings );
 
-	text_archive >> mInputChannel;
-	text_archive >> mBitRate;
+	text_archive >> mChannelA;
+	text_archive >> mChannelB;
+	text_archive >> mChannelZ;
+	text_archive >> mInvertedChannelA;
+	text_archive >> mInvertedChannelB;
+	text_archive >> mInvertedChannelZ;
 
 	ClearChannels();
-	AddChannel( mInputChannel, "Quadrature Encoder", true );
+	AddChannel( mChannelA, "Channel A", true );
+	AddChannel( mChannelB, "Channel B", true );
+	AddChannel( mChannelZ, "Channel Z", true );
+	AddChannel( mInvertedChannelA, "Inverted Channel A", true );
+	AddChannel( mInvertedChannelB, "Inverted Channel B", true );
+	AddChannel( mInvertedChannelZ, "Inverted Channel Z", true );
 
 	UpdateInterfacesFromSettings();
 }
@@ -66,8 +115,12 @@ const char* QuadratureEncoderAnalyzerSettings::SaveSettings()
 {
 	SimpleArchive text_archive;
 
-	text_archive << mInputChannel;
-	text_archive << mBitRate;
+	text_archive << mChannelA;
+	text_archive << mChannelB;
+	text_archive << mChannelZ;
+	text_archive << mInvertedChannelA;
+	text_archive << mInvertedChannelB;
+	text_archive << mInvertedChannelZ;
 
 	return SetReturnString( text_archive.GetString() );
 }

@@ -15,13 +15,23 @@ public:
 	virtual void LoadSettings( const char* settings );
 	virtual const char* SaveSettings();
 
-	
-	Channel mInputChannel;
-	U32 mBitRate;
+	// Channels
+	Channel mChannelA;
+	Channel mChannelB;
+	Channel mChannelZ; // Index channel (optional)
+
+	// Inverted channels (optional)
+	Channel mInvertedChannelA;
+	Channel mInvertedChannelB;
+	Channel mInvertedChannelZ;
 
 protected:
-	AnalyzerSettingInterfaceChannel	mInputChannelInterface;
-	AnalyzerSettingInterfaceInteger	mBitRateInterface;
+	AnalyzerSettingInterfaceChannel	mChannelAInterface;
+	AnalyzerSettingInterfaceChannel	mChannelBInterface;
+	AnalyzerSettingInterfaceChannel	mChannelZInterface;
+	AnalyzerSettingInterfaceChannel	mInvertedChannelAInterface;
+	AnalyzerSettingInterfaceChannel	mInvertedChannelBInterface;
+	AnalyzerSettingInterfaceChannel	mInvertedChannelZInterface;
 };
 
 #endif //QUADRATUREENCODER_ANALYZER_SETTINGS
