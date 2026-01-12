@@ -2,11 +2,15 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: 
+      - master
+      - QuadratureEncoder
     tags:
       - '*'
   pull_request:
-    branches: [master]
+    branches: 
+      - master
+      - QuadratureEncoder
 
 jobs:
   windows:
